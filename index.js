@@ -147,24 +147,30 @@ app.get("/AuthCheck", (req,res)=>{
 //});
 //
 
-app.post("/UserRegister", (req,res)=>{
-    const sql = "INSERT INTO appUser (`name`, `email`, `password`) VALUES (?, ?, ?) ";
-    const values = [req.body.name, req.body.email, req.body.password];
-    console.log(values);
-    dbconnect.query(sql, values, (err, result)=>{
-        if(err){
-            return res.status(500).json({error: "Error while inserting dataset"});
-            
+app.post("/UserRegister", (req, res) => {
+    const sql = "INSERT INTO appUser (`name`, `email`, `password`) VALUES (?, ?, ?) "
+    bcrypt.hash(req.body.password.toString(), jwtParam, (err, hash) => {
+        if (err) {
+            console.log(err)
+            return res.status(500).json({ error: "not possible internal error" })
         }
-        if(result.length > 0){
-            return res.status(400).json({err: "login please"})
+        const values = [req.body.name, req.body.email, hash];
 
-        }else{
-            return res.status(200).json({status :"success"})
+        dbconnect.query(sql, values, (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: "Error while inserting dataset" });
 
-        }
-    })
-    
+            }
+            if (result.length > 0) {
+                return res.status(400).json({ err: "login please" })
+
+            } else {
+                return res.status(200).json({ status: "success" })
+
+            }
+        })
+    });
+
 
 });
 
@@ -172,7 +178,7 @@ app.post("/UserRegister", (req,res)=>{
 //login user
 
 app.post("/login", (req,res)=>{
-    const sql = "SELECT FROM appUser WHERE email = ?";
+    const sql = "SELECT * FROM appUser WHERE email = ?";
     dbconnect.query(sql, [req.body.email], (err, data)=>{
         if(err){
             console.log(err);
