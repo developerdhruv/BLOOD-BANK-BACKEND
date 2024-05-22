@@ -1,17 +1,31 @@
-import express, { response } from 'express'
+import express from 'express'
+import { response } from 'express'
 import cors from 'cors'
 import jwt, { decode } from 'jsonwebtoken'
 import multer from 'multer'
 import bcrypt, { hash } from 'bcrypt'
 import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
-import dbconnect from './dbconnect'
+//import dbconnect from './dbconnect.js'
+
+import mysql from "mysql"
+
+const dbconnect = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password:"",
+    database: "blood-donate"
+})
+
+
+
+
 
 const jwtParam = 8;
 
 
 const port = 9080
-const app = expres()
+const app = express()
 //initialising storage for user photo using multer
 
 const storage = multer.diskStorage({
@@ -44,7 +58,7 @@ app.use(bodyParser.json())
 
 dbconnect.connect((err)=>{
     if(err){
-    console.log("Error While Conncting");
+    console.log("Error While Connecting");
     process.exit(1)
     }
     console.log("Database connected successfully")
@@ -74,6 +88,20 @@ const verifyUser = (req, res, next)=>{
 
 };
 
+//demo route
+app.get("/", (req,res)=>{
+    res.send("Or Bhai kay kr rha hai ye route kisi bhi kam ka nhi hai")
+    return res.status(200)
+
+
+});
+
+
+
+
+
+
+
 //check auth route
 
 app.get("/AuthCheck", (req,res)=>{
@@ -87,31 +115,59 @@ app.get("/AuthCheck", (req,res)=>{
 
 //register route
 
+//app.post("/UserRegister", (req,res)=>{
+//    const sql = "INSERT INTO appUser (`name`, `email`, `password`) VALUES (?, ?, ?) "
+//    
+//    bcrypt.hash(req.body.password.toString(), jwtParam , (err, hash)=>{
+//        if(err){
+//            console.error(err)
+//            return res.status(500).json({error : 'Password cant be submitted'})
+//
+////        }
+//
+//
+//
+//
+//        const values = [req.body.name, req.body.email, req.body.password];
+//        console.log(values)
+//        dbconnect.query(sql, values, (err, result)=>{
+//            if(err){
+//                console.log(err)
+//                return res.status(500).json({error: "Error while inserting dataset"}
+//
+//                )
+//            }
+//            if(result.length>0){
+//                return res.status(400).json({err: "login please"})
+//            }else{
+//                return res.status(200).json({status :"success"})
+//            }
+//        });
+//    } );
+//});
+//
+
 app.post("/UserRegister", (req,res)=>{
-    const sql = "INSERT INTO appUser (`name`, `email`, `password`) VALUES (?, ?, ?) "
-    bcrypt.hash(req.body.password.toStrin(), jwtParam , (err, hash)=>{
+    const sql = "INSERT INTO appUser (`name`, `email`, `password`) VALUES (?, ?, ?) ";
+    const values = [req.body.name, req.body.email, req.body.password];
+    console.log(values);
+    dbconnect.query(sql, values, (err, result)=>{
         if(err){
-            console.error(err)
-            return res.status(500).json({error : 'Password cant be submitted'})
+            return res.status(500).json({error: "Error while inserting dataset"});
+            
+        }
+        if(result.length > 0){
+            return res.status(400).json({err: "login please"})
+
+        }else{
+            return res.status(200).json({status :"success"})
 
         }
-        const values = [req.body.name, req.body.email, hash];
-        console.log(values)
-        dbconnect.query(sql, values, (err, result)=>{
-            if(err){
-                console.log(err)
-                return res.status(500).json({error: "Error while inserting dataset"}
+    })
+    
 
-                )
-            }
-            if(result.length>0){
-                return res.status(400).json({err: "login please"})
-            }else{
-                return res.status(200).json({status :"success"})
-            }
-        });
-    } );
 });
+
 
 //login user
 
@@ -226,5 +282,5 @@ app.get("/BankBlood/:id", (req,res)=>{
 
 
 app.listen(port, ()=>{
-    console.log('Server has started')
+    console.log('Server has started',"https://localhost:"+port )
 })
