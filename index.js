@@ -148,16 +148,20 @@ app.get("/AuthCheck", (req,res)=>{
 //
 
 app.post("/UserRegister", (req, res) => {
+    const rrq= [req.body.name, req.body.email, req.body.password];
+    console.log(rrq);
     const sql = "INSERT INTO appUser (`name`, `email`, `password`) VALUES (?, ?, ?) "
-    bcrypt.hash(req.body.password.toString(), jwtParam, (err, hash) => {
+    bcrypt.hash((req.body.password || '').toString(), jwtParam, (err, hash) => {
         if (err) {
             console.log(err)
             return res.status(500).json({ error: "not possible internal error" })
         }
         const values = [req.body.name, req.body.email, hash];
+        console.log(values)
 
         dbconnect.query(sql, values, (err, result) => {
             if (err) {
+                console.log(err)
                 return res.status(500).json({ error: "Error while inserting dataset" });
 
             }
@@ -178,8 +182,10 @@ app.post("/UserRegister", (req, res) => {
 //login user
 
 app.post("/login", (req,res)=>{
+    console.log(req.body);
     const sql = "SELECT * FROM appUser WHERE email = ?";
     dbconnect.query(sql, [req.body.email], (err, data)=>{
+        console.log(data);
         if(err){
             console.log(err);
             return res.status(500).json({error: "error while login"})
@@ -222,8 +228,8 @@ app.post('/addBlood',uploadImage.single("image"), (req,res)=>{
     const {name, location, bloodgroup, available}= req.body;
     console.log(name, location, bloodgroup, available)
 
-    const imagePath = req.file? req.file.filename:numm;
-    console.log(imagePath);
+   // const imagePath = req.file? req.file.filename:num;
+    //console.log(imagePath);
 
     const query = "INSERT INTO bank (name, location, bloodgroup, available) VALUES (?,?,?,?)";
     dbconnect.query(query, [name, location, bloodgroup, available], (err, result)=>{
